@@ -6,6 +6,7 @@
 //So we don't need to write std:: everywhere
 using namespace std;
 
+
 //point type for holding a coordinate 
 struct point {
 	double x;
@@ -41,22 +42,25 @@ string toString(lineSegment l){
 	return s;
 }
 
-int main(){
+//Create variables for holding start and endpoint plus the test title
+point start, end;
+string testTitle;
+
+//Create vector for containing the linesegments
+vector<lineSegment> lineSegments;
+
+void readInput(){
+
 	//Get the test title
-	string testTitle;
 	getline(cin,testTitle);
 
 	//Read start and end points
-	point start = readPoint();
-	point end  = readPoint();
+	start = readPoint();
+	end  = readPoint();
 
 	//Get the number of Polygons
 	int numberOfPolygons;
 	cin >> numberOfPolygons;
-
-
-	//Create vector for containing the linesegments
-	vector<lineSegment> lineSegments;
 
 	//Iterate through the polygons
 	for(int i=0;i<numberOfPolygons;i++){
@@ -99,4 +103,9 @@ int main(){
 		//and push it to the vector
 		lineSegments.push_back(l);
 	}
+
+}
+
+int main(){
+	readInput();
 }
