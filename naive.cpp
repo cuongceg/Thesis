@@ -19,12 +19,9 @@ struct point {
 	point(){
 
 	}
-	//bool operator<(const point& p) const
-	//{
-		//return x < p.x;
-	//}
 };
 
+//Type used in the priority queue in the dijkstra function
 typedef std::pair<double,int> pq_pair;
 
 //linesegment type holding two points
@@ -164,6 +161,7 @@ bool crosses(lineSegment l1, lineSegment l2){
 	return do_they_cross;
 }
 
+//Takes a line segment and returns the number of polygon edges it crosses
 int numberOfCrossings(lineSegment l){
 	int n=0;
 	for(int i = 0; i < lineSegments.size();i++){
@@ -174,22 +172,53 @@ int numberOfCrossings(lineSegment l){
 	return n;
 }
 
+//Implementation of dijkstra
+//Takes a graph and a start and end point in the graph
+//returns the distance
 double dijkstra(vector< vector< double > > &graph,int from, int to){
+
+	//Create a vector to see if we already visited the point
 	vector<bool> visited(graph.size());
 
+	//Create a priority queue where pq_pair consists of 
+	//the distance to the point and the point index in points vector
 	priority_queue<pq_pair> pq;
+
+	//Put the start point in the queue
 	pq.push(pq_pair(0,from));
+
+	//Set the visit status to true
 	visited[0] = true;
+
+	//While there a still points we haven't visited we run
 	while(!pq.empty()){
+
+		//Get the top point
 		pq_pair p = pq.top();	
+
+		//Remove it
 		pq.pop();
+
+		//How far have we travelled until now
 		double distanceSoFar = p.first;
+
+		//What point are we at
 		int point = p.second;
+
+		//We we have reached the distination return the distance
 		if(point == to) return distanceSoFar;
+
+		//Set the point to true in the visited vector
 		visited[point] = true;
+
+		//Go through every point we have an edge to and haven't visited
 		for(int i = 0; i < graph[point].size() ; i++){
 			if(graph[point][i]==-1 || visited[i]) continue;
+
+			//calculate the complete distance to that point
 			double newdistance = distanceSoFar + graph[point][i];
+
+			//And push it to the queue
 			pq.push(pq_pair(newdistance,i));
 		}
 	}
@@ -197,32 +226,56 @@ double dijkstra(vector< vector< double > > &graph,int from, int to){
 }
 
 double calculateDistance(){
+
+	//Get how many points we have
 	int numberOfPoints = points.size();
+
+	//Create a two dimenstional vector for the graph
+	//where graph[i][j] is the distance from point i to j
+	//if graph[i][j] = -1 then there is no connection
 	vector< vector<double> > graph(numberOfPoints,vector<double>(numberOfPoints));
+
+
+	//Go through all pairs of points and calculate the distance
 	for(int i=0;i<numberOfPoints;i++){
 		for(int j=0;j<numberOfPoints;j++){
+
+			//If it is the same point don't make an edge
 			if(i==j) graph[i][j]=-1;
 			else{
+
+				//Call dist function to calculate the distance
 				graph[i][j]=dist(points[i],points[j]);
 			}
 		}
 	}
+
+	//Go through all pairs of points again
+	//This time we want to calculate if we cross any polygon
 	for(int i=0;i<numberOfPoints;i++){
 		for(int j=0;j<numberOfPoints;j++){
 			if(graph[i][j]!=-1){
+				//Make a line segment from i to j
 				lineSegment l;
 				l.p1 = points[i];
 				l.p2 = points[j];
+
+				//Call numberOfCrossings, which 
+				//suprise suprise counts the number of crossings
 				if(numberOfCrossings(l)>0){
+
+					//And remove the edge if it crosses any polygon
 					graph[i][j] = -1;
 				}
 			}
 		}
 	}
 
+	//The graph is constructed call dijksta to calculate the distance
 	double distance = dijkstra(graph,0,graph.size()-1);
 
-	return 0;
+	//And return it
+	return distance;
 }
 
 int main(){
