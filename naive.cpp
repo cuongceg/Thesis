@@ -26,11 +26,11 @@ typedef std::pair<double,int> pq_pair;
 
 //linesegment type holding two points
 struct lineSegment {
-	point p1;
-	point p2;
-	lineSegment(double p,double q){
-		this->p1 = p;
-		this->p2 = q;
+	point p;
+	point q;
+	lineSegment(point p,point q){
+		this->p = p;
+		this->q = q;
 	}
 	lineSegment(){
 
@@ -55,7 +55,7 @@ string toString(point p){
 //Function that given a linesegment returns a string representation of it
 string toString(lineSegment l){
 	ostringstream os;
-	os << toString(l.p1) << " - " << toString(l.p2);
+	os << toString(l.p) << " - " << toString(l.q);
 	string s = os.str();
 	return s;
 }
@@ -113,8 +113,8 @@ void readInput(){
 			lineSegment l;
 
 			//Set the linesegment
-			l.p1 = lastPoint;
-			l.p2 = currentPoint;
+			l.p = lastPoint;
+			l.q = currentPoint;
 
 			//push it to the list of linesegments
 			lineSegments.push_back(l);
@@ -125,8 +125,8 @@ void readInput(){
 
 		//Construct the missing linesegment
 		lineSegment l;	
-		l.p1 = lastPoint;
-		l.p2 = firstPoint;
+		l.p = lastPoint;
+		l.q = firstPoint;
 
 		//and push it to the vector
 		lineSegments.push_back(l);
@@ -143,10 +143,13 @@ double dist(point p, point q){
 }
 
 double calculateA(lineSegment l){
-	return (l.p1.y-l.p2.y)/(l.p1.x-l.p2.x);
+	if(l.p.x==l.q.x) return 0;
+	return (l.p.y-l.q.y)/(l.p.x-l.q.x);
 }
 double calculateB(lineSegment l, double a){
-	return l.p1.y/(a*l.p1.x);
+	//Since in this case we get ax+b=y => b=y
+	if(a==0 || l.p.x == 0) return l.p.y;
+	return l.p.y/(a*l.p.x);
 }
 
 
@@ -158,17 +161,22 @@ bool crosses(lineSegment l1, lineSegment l2){
 	double l2_b = calculateB(l2,l2_a);
 
 	//If the slope is equal the lines a parallel
-	//TODO: we might night a tolerance here
+	//TODO: we might need a tolerance here
 	if(l1_a==l2_a) return false;
 
 	double crossing_x = (l2_b-l1_b)/(l1_a-l2_a);
 
-	bool above_both = crossing_x > l1.p1.x && crossing_x > l1.p2.x;
-	bool below_both = crossing_x < l1.p1.x && crossing_x < l1.p2.x;
+	bool above_both_l1 = crossing_x >= l1.p.x && crossing_x >= l1.q.x;
+	bool below_both_l1 = crossing_x <= l1.p.x && crossing_x <= l1.q.x;
 
-	bool do_they_cross = !(above_both || below_both);
+	bool between_l1 = !(above_both_l1 || below_both_l1);
 
-	return do_they_cross;
+	bool above_both_l2 = crossing_x >= l2.p.x && crossing_x >= l2.q.x;
+	bool below_both_l2 = crossing_x <= l2.p.x && crossing_x <= l2.q.x;
+
+	bool between_l2 = !(above_both_l2 || below_both_l2);
+
+	return between_l1 && between_l2;
 }
 
 //Takes a line segment and returns the number of polygon edges it crosses
@@ -267,8 +275,8 @@ double calculateDistance(){
 			if(graph[i][j]!=-1){
 				//Make a line segment from i to j
 				lineSegment l;
-				l.p1 = points[i];
-				l.p2 = points[j];
+				l.p = points[i];
+				l.q = points[j];
 
 				//Call numberOfCrossings, which 
 				//suprise suprise counts the number of crossings
@@ -285,7 +293,6 @@ double calculateDistance(){
 		for(int j=0;j<graph[i].size();j++){
 			double value = graph[i][j];
 			if(value==-1) continue;
-			cout << toString(points[i]) << "->" << toString(points[j]) << ":" << graph[i][j] << endl;
 		}
 	}
 
@@ -316,6 +323,8 @@ int main(){
 
 	//Call function that calculate the distance
 	double distance = calculateDistance();
+
+	lineSegment l1,l2;
 
 	//Output the distance
 	cout << distance << endl;
