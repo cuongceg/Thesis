@@ -28,6 +28,13 @@ typedef std::pair<double,int> pq_pair;
 struct lineSegment {
 	point p1;
 	point p2;
+	lineSegment(double p,double q){
+		this->p1 = p;
+		this->p2 = q;
+	}
+	lineSegment(){
+
+	}
 };
 
 //Function for reading the next point in stdin
@@ -71,6 +78,7 @@ void readInput(){
 	//Read start and end points
 	start = readPoint();
 	end  = readPoint();
+	points.push_back(start);
 
 	//Get the number of Polygons
 	int numberOfPolygons;
@@ -123,6 +131,8 @@ void readInput(){
 		//and push it to the vector
 		lineSegments.push_back(l);
 	}
+
+	points.push_back(end);
 
 }
 
@@ -271,11 +281,33 @@ double calculateDistance(){
 		}
 	}
 
+	for(int i=0;i<graph.size();i++){
+		for(int j=0;j<graph[i].size();j++){
+			double value = graph[i][j];
+			if(value==-1) continue;
+			cout << toString(points[i]) << "->" << toString(points[j]) << ":" << graph[i][j] << endl;
+		}
+	}
+
 	//The graph is constructed call dijksta to calculate the distance
 	double distance = dijkstra(graph,0,graph.size()-1);
 
 	//And return it
 	return distance;
+}
+
+void printLineSegments(){
+	cout << "line segments" << endl;
+	for(int i=0;i<lineSegments.size();i++){
+		cout << toString(lineSegments[i]) << endl;
+	}
+}
+
+void printPoints(){
+	cout << "points" << endl;
+	for(int i=0;i<points.size();i++){
+		cout << toString(points[i]) << endl;
+	}
 }
 
 int main(){
