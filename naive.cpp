@@ -38,35 +38,6 @@ struct lineSegment {
 	}
 };
 
-//code from internet
-double CCW(point a, point b, point c)
-{ return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x); }
-
-int middle(int a, int b, int c) {
-  int t;    
-  if ( a > b ) {
-    t = a;
-    a = b;
-    b = t;
-  }
-  if ( a < c && c < b ) return 1;
-  return 0;
-}
-
-int intersect(lineSegment a, lineSegment b) {
-  if ( ( CCW(a.q, a.p, b.q) * CCW(a.q, a.p, b.p) < 0 ) &&
-     ( CCW(b.q, b.p, a.q) * CCW(b.q, b.p, a.p) < 0 ) ) return 1;
-
-  if ( CCW(a.q, a.p, b.q) == 0 && middle(a.q.x, a.p.x, b.q.x) && middle(a.q.y, a.p.y, b.q.y) ) return 1;
-  if ( CCW(a.q, a.p, b.p) == 0 && middle(a.q.x, a.p.x, b.p.x) && middle(a.q.y, a.p.y, b.p.y) ) return 1;
-  if ( CCW(b.q, b.p, a.q) == 0 && middle(b.q.x, b.p.x, a.q.x) && middle(b.q.y, b.p.y, a.q.y) ) return 1;
-  if ( CCW(b.q, b.p, a.p) == 0 && middle(b.q.x, b.p.x, a.p.x) && middle(b.q.y, b.p.y, a.p.y) ) return 1;
-
-    return 0;
-}
-/// end web
-
-
 //Function for reading the next point in stdin
 point readPoint(){
 	point p;
@@ -163,45 +134,14 @@ double dist(point p, point q){
 	return (double) sqrt(pow(p.x-q.x,2.0)+pow(p.y-q.y,2.0));
 }
 
-double calculateA(lineSegment l){
-	if(l.p.x==l.q.x) return 0;
-	return (l.p.y-l.q.y)/(l.p.x-l.q.x);
-}
-double calculateB(lineSegment l, double a){
-	//Since in this case we get ax+b=y => b=y
-	if(a==0 || l.p.x == 0) return l.p.y;
-	return l.p.y/(a*l.p.x);
+double rightTurn(point p1, point p2, point p3){
+	return (p1.y-p2.y)*(p2.x-p3.x)-(p2.y-p3.y)*(p1.x-p2.x);
 }
 
 bool crosses(lineSegment l1, lineSegment l2){
-	return intersect(l1,l2);
-	double l1_a = calculateA(l1);
-	double l1_b = calculateB(l1,l1_a);
-
-	cout << l1_a << "x+" << l1_b << "=y" << endl;
-
-	double l2_a = calculateA(l2);
-	double l2_b = calculateB(l2,l2_a);
-
-	cout << l2_a << "x+" << l2_b << "=y" << endl;
-
-	//If the slope is equal the lines a parallel
-	//TODO: we might need a tolerance here
-	if(l1_a==l2_a) return false;
-
-	double crossing_x = (l2_b-l1_b)/(l1_a-l2_a);
-
-	bool above_both_l1 = crossing_x >= l1.p.x && crossing_x >= l1.q.x;
-	bool below_both_l1 = crossing_x <= l1.p.x && crossing_x <= l1.q.x;
-
-	bool between_l1 = !(above_both_l1 || below_both_l1);
-
-	bool above_both_l2 = crossing_x >= l2.p.x && crossing_x >= l2.q.x;
-	bool below_both_l2 = crossing_x <= l2.p.x && crossing_x <= l2.q.x;
-
-	bool between_l2 = !(above_both_l2 || below_both_l2);
-
-	return between_l1 && between_l2;
+	return ((rightTurn(l1.p,l1.q,l2.p)*rightTurn(l1.p,l1.q,l2.q)<0) 
+			 &&  
+			 (rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<0));
 }
 
 //Takes a line segment and returns the number of polygon edges it crosses
