@@ -4,7 +4,8 @@
 #include <sstream> //ostringstream
 #include <cmath> //pow sqrt
 #include <queue> //priority_queue
-//#include <tuple> //tuple
+#include <stdlib.h> //atoi
+//#include <tuple> //get<n> make_tuple
 
 
 //So we don't need to write std:: everywhere
@@ -18,9 +19,13 @@ struct point {
 		this->x = x;
 		this->y = y;
 	}
+
 	point(){
 
 	}
+	bool operator==(const point &other) const {
+		return (this->x==other.x && this->y==other.y);
+  }
 };
 //Type used in the priority queue in the dijkstra function
 typedef std::pair<double,std::pair<int,int> > pq_pair;
@@ -62,7 +67,7 @@ string toString(lineSegment l){
 }
 
 
-void readInput(point &start, point &end, string testTitle, vector<lineSegment> &lineSegments, vector<point> &points){
+void readInput(point &start, point &end, string &testTitle, vector< vector< lineSegment> > &polygons, vector<point> &points){
 
 	//Get the test title
 	getline(cin,testTitle);
@@ -75,6 +80,8 @@ void readInput(point &start, point &end, string testTitle, vector<lineSegment> &
 	//Get the number of Polygons
 	int numberOfPolygons;
 	cin >> numberOfPolygons;
+
+	polygons.resize(numberOfPolygons, vector<lineSegment>());
 
 	//Iterate through the polygons
 	for(int i=0;i<numberOfPolygons;i++){
@@ -109,7 +116,7 @@ void readInput(point &start, point &end, string testTitle, vector<lineSegment> &
 			l.q = currentPoint;
 
 			//push it to the list of linesegments
-			lineSegments.push_back(l);
+			polygons[i].push_back(l);
 
 			//and update the lastPoint
 			lastPoint = currentPoint;
@@ -121,7 +128,7 @@ void readInput(point &start, point &end, string testTitle, vector<lineSegment> &
 		l.q = firstPoint;
 
 		//and push it to the vector
-		lineSegments.push_back(l);
+		polygons[i].push_back(l);
 	}
 
 	points.push_back(end);
@@ -139,17 +146,21 @@ double rightTurn(point p1, point p2, point p3){
 }
 
 bool crosses(lineSegment l1, lineSegment l2){
+	if(l1.p==l2.p || l1.p==l2.q || l1.q==l2.p || l1.q == l2.q) return false;
 	return ((rightTurn(l1.p,l1.q,l2.p)*rightTurn(l1.p,l1.q,l2.q)<0) 
-			 &&  
-			 (rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<0));
+			&&  
+			(rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<0));
 }
 
 //Takes a line segment and returns the number of polygon edges it crosses
-int numberOfCrossings(vector<lineSegment> &lineSegments, lineSegment l){
+int numberOfCrossings(vector<vector<lineSegment> > &polygons, lineSegment l){
 	int n=0;
-	for(int i = 0; i < lineSegments.size();i++){
-		if(crosses(l,lineSegments[i])){
-			n++;
+	for(int i = 0; i < polygons.size();i++){
+		for(int j=0;j<polygons[i].size();j++){
+			if(crosses(l,polygons[i][j])){
+				n++;
+				break;
+			}
 		}
 	}
 	return n;
@@ -158,7 +169,9 @@ int numberOfCrossings(vector<lineSegment> &lineSegments, lineSegment l){
 //Implementation of dijkstra
 //Takes a graph and a start and end point in the graph
 //returns the distance
-double dijkstra(vector< vector< double > > &graph, int start, int end,vector<int> &route){
+double dijkstra(vector< vector< double > > &graphDistance, vector<vector< int> > &graph ,vector<int> &route){
+	int start = 0;
+	int end = graph.size()-1;
 
 	route.resize(graph.size());
 
@@ -170,6 +183,7 @@ double dijkstra(vector< vector< double > > &graph, int start, int end,vector<int
 	priority_queue<pq_pair> pq;
 
 	//Put the start point in the queue
+	//TODO: tuple instead of pair?
 	pq.push(pq_pair(make_pair(0,make_pair(start,-1))));
 
 	//While there a still points we haven't visited we run
@@ -185,152 +199,147 @@ double dijkstra(vector< vector< double > > &graph, int start, int end,vector<int
 		double distanceSoFar = -1*p.first;
 
 		//What point are we at
-		int point = p.second.first;
+		int current = p.second.first;
 
 		int whereFrom = p.second.second;
 
-		//If we already visited the point continue
-		if(visited[point]) continue;
+		//If we already visited the current continue
+		if(visited[current]) continue;
 
-		route[point] = whereFrom;
+		route[current] = whereFrom;
 
 		//We we have reached the distination return the distance
-		if(point == end) return distanceSoFar;
+		if(current == end) return distanceSoFar;
 
-		//Set the point to true in the visited vector
-		visited[point] = true;
+		//Set the current to true in the visited vector
+		visited[current] = true;
 
-		//Go through every point we have an edge to and haven't visited
-		for(int i = 0; i < graph[point].size() ; i++){
-			if(graph[point][i]==-1 || visited[i]) continue;
+		//Go through every current we have an edge to and haven't visited
+		for(int i = 0; i < graph[current].size() ; i++){
+			int next = graph[current][i];
+			if(visited[next]) continue;
 
-			//calculate the complete distance to that point
-			double newdistance = distanceSoFar + graph[point][i];
+			//calculate the complete distance to that current
+			double newdistance = distanceSoFar + graphDistance[current][next];
 
 			//And push it to the queue
-			pq.push(make_pair(-1*newdistance,make_pair(i,point)));
+
+			pq_pair p1 =make_pair(-1*newdistance,make_pair(next,current));
+
+			pq.push(p1);
 		}
 	}
 	return -1;
 }
 
-int constructGraph(vector<lineSegment> &lineSegments, vector<point> &points, vector< vector < double > > &graph){
+int makeVisabilityGraph(vector< vector < int > > &graph, vector< vector < double > > &graphDistance,vector< vector<int> > &crossesNumber, vector<point> &points){
 
 	//Get how many points we have
 	int numberOfPoints = points.size();
 
 	//Create a two dimenstional vector for the graph
-	//where graph[i][j] is the distance from point i to j
-	//if graph[i][j] = -1 then there is no connection
-	graph.resize(numberOfPoints,vector<double>(numberOfPoints));
-
+	graph.resize(numberOfPoints,vector<int>());
+	graphDistance.resize(numberOfPoints,vector<double>());
 
 	//Go through all pairs of points and calculate the distance
-	for(int i=0;i<numberOfPoints;i++){
+	for(int i=0;i<graph.size();i++){
 		for(int j=0;j<numberOfPoints;j++){
 
-			//If it is the same point don't make an edge
-			if(i==j) graph[i][j]=-1;
-			else{
+			int from = i;
+			int to = j;//(i/numberOfPoints)*numberOfPoints+j+crossesNumber[i][j]*numberOfPoints;
 
+			//If it is the same point don't make an edge
+			//if(graph.size()>to){
+			if(i!=j){
 				//Call dist function to calculate the distance
-				graph[i][j]=dist(points[i],points[j]);
+				double distance = dist(points[i],points[j]);
+				graphDistance[i].push_back(distance);
+				graph[i].push_back(j);
 			}
 		}
 	}
 
-	//Go through all pairs of points again
-	//This time we want to calculate if we cross any polygon
-	for(int i=0;i<numberOfPoints;i++){
-		for(int j=0;j<numberOfPoints;j++){
-			if(graph[i][j]!=-1){
-				//Make a line segment from i to j
+	return 0;
+}
+
+int calculateNumberOfCrossings(vector < vector < int > > &crossesNumber,vector<vector<lineSegment> > &polygons, vector<point> &points){
+	crossesNumber.resize(points.size(),vector<int>(points.size()));
+	for(int i=0;i<points.size();i++){
+		for(int j=0;j<points.size();j++){
 				lineSegment l;
 				l.p = points[i];
 				l.q = points[j];
 
 				//Call numberOfCrossings, which 
 				//suprise suprise counts the number of crossings
-				if(numberOfCrossings(lineSegments,l)>0){
-
-					//And remove the edge if it crosses any polygon
-					graph[i][j] = -1;
-				}
-			}
+				crossesNumber[i][j] = numberOfCrossings(polygons,l);
+			
 		}
 	}
-
-	for(int i=0;i<graph.size();i++){
-		for(int j=0;j<graph[i].size();j++){
-			double value = graph[i][j];
-			if(value==-1) continue;
-		}
-	}
-
-
-	return 0;
+	return 0;	
 }
 
-void printLineSegments(vector<lineSegment> &lineSegments){
-	cout << "line segments" << endl;
-	for(int i=0;i<lineSegments.size();i++){
-		cout << toString(lineSegments[i]) << endl;
+int main(int argc, const char* argv[]){
+	int k=0;
+	bool naive = true;
+
+	if(argc>1){
+		k = atoi(argv[1]);
 	}
-}
-
-void printPoints(vector<point> &points){
-	cout << "points" << endl;
-	for(int i=0;i<points.size();i++){
-		cout << toString(points[i]) << endl;
-	}
-}
-
-void printGraph(vector < vector < double > > &graph){
-	for(int i=0;i<graph.size();i++){
-		for(int j=0;j<graph[i].size();j++){
-			cout << graph[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-}
-
-#include "crossTesting.cpp"
-
-int main(){
-	//test();
-	//return 0;
+	bool printGraph = true;
 
 	//Create variables for holding start and endpoint plus the test title
 	point start, end;
 	string testTitle;
 
 	//Create vector for containing the linesegments of the polygons
-	vector<lineSegment> lineSegments;
+	vector< vector < lineSegment> > polygons;
 
 	//Create vector for containing the points of the polygons
 	vector<point> points;
 
 	//Call function that parses the file input
-	readInput(start, end, testTitle, lineSegments, points);
+	readInput(start, end, testTitle, polygons, points);
 
-	vector< vector < double > > graph;
-
-	//Call function that calculate the distance
-	int status = constructGraph(lineSegments, points, graph);
+	vector< vector < int > > graph;
+	vector< vector < double > > graphDistance;
 
 	//Vector so we can backtrack the route
 	vector<int> route;
 
+	vector< vector < int > > crossesNumber;
+
+	calculateNumberOfCrossings(crossesNumber, polygons, points);
+
+	//Call function that calculate the distance
+	int status = makeVisabilityGraph(graph, graphDistance, crossesNumber, points);
+
+
 	//The graph is constructed call dijksta to calculate the distance
-	double distance = dijkstra(graph,0,graph.size()-1,route);
+	double distance = dijkstra(graphDistance,graph,route);
 
 	//Output the distance
-	cout << distance << endl;
-	int i = graph.size()-1;
-	while(i!=-1){
-		cout << toString(points[i]) << " ";
-		i = route[i];
+	
+	if(printGraph){
+		cout << testTitle << endl;
+		cout << start.x << "," << start.y << endl;
+		cout << end.x << "," << end.y << endl;
+		cout << polygons.size() << endl;
+		for(int i=0;i<polygons.size();i++){
+			cout << polygons[i].size() << " ";
+			for(int j=0;j<polygons[i].size();j++){
+				cout << polygons[i][j].p.x << "," << polygons[i][j].p.y << " ";	
+			}
+			cout << endl;
+		}
+		int current = graph.size()-1;
+		while(current!=-1){
+			int x = (int) points[current].x;
+			int y = (int) points[current].y;
+			cout << x << "," << y << " ";
+			current = route[current];
+		}
+		cout << endl;
 	}
-	cout << endl;
+	cout << distance << endl;
 }

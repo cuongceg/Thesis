@@ -10,6 +10,7 @@ class Point:
     def __init__(self,s):
         global max_y, max_x, min_y, min_x
         temp = s.split(",")
+
         self.x = int(temp[0])*10
         self.y = int(temp[1])*10
         if self.x < min_x:
@@ -55,6 +56,9 @@ def drawRoute(l):
     points = stringWithPoints(l)
     addLine(1,' <polyline stroke="red" stroke-width="0.2" fill="none" points="%s"/>' % points)
 
+def printText(x,y,s):
+    addLine(1,'<text x="%s" y="%s" font-family="Verdana" font-size="5">%s</text>'% (str(0),str(-1*(max_y+5)),s))
+
 
 def main():
     lines = sys.stdin.readlines()
@@ -64,23 +68,27 @@ def main():
     polygons = []
     
     i = int(lines[3])    
-    print(i)
     for line in lines[4:4+i]:
-        print(line)
-        subline = line.split(" ")
+        subline = line.strip().split(" ")
         polygon = []
         for l in subline[1:]:
             polygon.append(Point(l))
         polygons.append(polygon)
     addLine(0,'<?xml version="1.0" encoding="UTF-8" ?>')
-    viewbox = '%s %s %s %s' % (min_x-5, -1*(max_y+5), abs(min_x)+abs(max_x)+10, abs(min_y)+abs(max_y)+10)
+    viewbox = '%s %s %s %s' % (min_x-5, -1*(max_y+15), abs(min_x)+abs(max_x)+10, abs(min_y)+abs(max_y)+20)
     addLine(0,'<svg viewBox="%s" xmlns="http://www.w3.org/2000/svg" version="1.1">' % viewbox)
     drawStart(start)
     drawEnd(end)
     for polygon in polygons:
         drawPolygon(polygon)
 
-    drawRoute([point(s) for s in lines[5+i].split(" ")])
+    l =[Point(s) for s in lines[4+i].strip().split(" ")]
+    drawRoute(l)
+
+    # print(max_x,max_y,min_x,min_y)
+    text = "%s, length: %s" % (title,lines[5+i])
+    printText(0,0,text)
+    # printText(max_x,max_y,lines[5+i])
 
     addLine(0,'</svg>')
 
