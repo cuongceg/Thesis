@@ -5,7 +5,7 @@
 #include <cmath> //pow sqrt
 #include <queue> //priority_queue
 #include <stdlib.h> //atoi
-//#include <tuple> //get<n> make_tuple
+#include <tuple> //get<n> make_tuple
 
 
 //So we don't need to write std:: everywhere
@@ -41,6 +41,10 @@ struct lineSegment {
 	lineSegment(){
 
 	}
+	bool operator==(const lineSegment &other) const {
+		return (this->p==other.p && this->q==other.q) ||
+		(this->p==other.q && this->q==other.p);
+  }
 };
 
 //Function for reading the next point in stdin
@@ -145,22 +149,36 @@ double rightTurn(point p1, point p2, point p3){
 	return (p1.y-p2.y)*(p2.x-p3.x)-(p2.y-p3.y)*(p1.x-p2.x);
 }
 
-bool crosses(lineSegment l1, lineSegment l2){
-	if(l1.p==l2.p || l1.p==l2.q || l1.q==l2.p || l1.q == l2.q) return false;
-	return ((rightTurn(l1.p,l1.q,l2.p)*rightTurn(l1.p,l1.q,l2.q)<0) 
+int crosses(lineSegment l1, lineSegment l2){
+	if(l1==l2) return -1;
+	int returnValue = 0;
+	if(l1.p == l2.p) returnValue++; 
+	if(l1.p == l2.q) returnValue++;
+	if(l1.q == l2.p) returnValue++;
+	if(l1.q == l2.q) returnValue++;
+	if((rightTurn(l1.p,l1.q,l2.p)*rightTurn(l1.p,l1.q,l2.q)<0) 
 			&&  
-			(rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<0));
+			(rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<0)) returnValue += 4;
+	return returnValue;
 }
 
 //Takes a line segment and returns the number of polygon edges it crosses
 int numberOfCrossings(vector<vector<lineSegment> > &polygons, lineSegment l){
 	int n=0;
 	for(int i = 0; i < polygons.size();i++){
+		int numberOfvaolation=0;
 		for(int j=0;j<polygons[i].size();j++){
-			if(crosses(l,polygons[i][j])){
-				n++;
+			int result = crosses(l,polygons[i][j]);
+			if(result==-1){
+				numberOfvaolation = -1;
 				break;
 			}
+			else{
+				numberOfvaolation+=result;
+			}
+		}
+		if(numberOfvaolation>3){
+			n++;
 		}
 	}
 	return n;
@@ -180,28 +198,28 @@ double dijkstra(vector< vector< double > > &graphDistance, vector<vector< int> >
 
 	//Create a priority queue where pq_pair consists of 
 	//the distance to the point and the point index in points vector
-	priority_queue<pq_pair> pq;
+	priority_queue< tuple<double,int,int> > pq;
 
 	//Put the start point in the queue
 	//TODO: tuple instead of pair?
-	pq.push(pq_pair(make_pair(0,make_pair(start,-1))));
+	pq.push(make_tuple(0,start,-1));
 
 	//While there a still points we haven't visited we run
 	while(!pq.empty()){
 
 		//Get the top point
-		pq_pair p = pq.top();	
+		tuple<double,int,int> t = pq.top();	
 
 		//Remove it
 		pq.pop();
 
 		//How far have we travelled until now
-		double distanceSoFar = -1*p.first;
+		double distanceSoFar = -1*get<0>(t);
 
 		//What point are we at
-		int current = p.second.first;
+		int current = get<1>(t);
 
-		int whereFrom = p.second.second;
+		int whereFrom = get<2>(t);
 
 		//If we already visited the current continue
 		if(visited[current]) continue;
@@ -220,13 +238,12 @@ double dijkstra(vector< vector< double > > &graphDistance, vector<vector< int> >
 			if(visited[next]) continue;
 
 			//calculate the complete distance to that current
-			double newdistance = distanceSoFar + graphDistance[current][next];
+			double newdistance = distanceSoFar + graphDistance[current][i];
 
 			//And push it to the queue
+			tuple<double,int,int> newTuple = make_tuple(-1*newdistance,next,current);
 
-			pq_pair p1 =make_pair(-1*newdistance,make_pair(next,current));
-
-			pq.push(p1);
+			pq.push(newTuple);
 		}
 	}
 	return -1;
@@ -246,11 +263,11 @@ int makeVisabilityGraph(vector< vector < int > > &graph, vector< vector < double
 		for(int j=0;j<numberOfPoints;j++){
 
 			int from = i;
-			int to = j;//(i/numberOfPoints)*numberOfPoints+j+crossesNumber[i][j]*numberOfPoints;
+			int to = (i/numberOfPoints)*numberOfPoints+j+crossesNumber[i][j]*numberOfPoints;
 
 			//If it is the same point don't make an edge
-			//if(graph.size()>to){
-			if(i!=j){
+			if(graph.size()>to){
+			//if(i!=j){
 				//Call dist function to calculate the distance
 				double distance = dist(points[i],points[j]);
 				graphDistance[i].push_back(distance);
@@ -273,7 +290,6 @@ int calculateNumberOfCrossings(vector < vector < int > > &crossesNumber,vector<v
 				//Call numberOfCrossings, which 
 				//suprise suprise counts the number of crossings
 				crossesNumber[i][j] = numberOfCrossings(polygons,l);
-			
 		}
 	}
 	return 0;	
@@ -312,7 +328,7 @@ int main(int argc, const char* argv[]){
 	calculateNumberOfCrossings(crossesNumber, polygons, points);
 
 	//Call function that calculate the distance
-	int status = makeVisabilityGraph(graph, graphDistance, crossesNumber, points);
+	makeVisabilityGraph(graph, graphDistance, crossesNumber, points);
 
 
 	//The graph is constructed call dijksta to calculate the distance
