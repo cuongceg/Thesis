@@ -1,8 +1,0 @@
-Title on test
-start point
-end point
-#polygons (n)
-1. polygon
-2. polygon
-...
-n. polygon

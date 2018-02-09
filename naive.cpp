@@ -54,23 +54,6 @@ point readPoint(){
 	return p;
 }
 
-//Function that given a point returns a string representation of it
-string toString(point p){
-	ostringstream os;
-	os << "(" << p.x << "," << p.y << ")";
-	string s = os.str();
-	return s;
-}
-
-//Function that given a linesegment returns a string representation of it
-string toString(lineSegment l){
-	ostringstream os;
-	os << toString(l.p) << " - " << toString(l.q);
-	string s = os.str();
-	return s;
-}
-
-
 void readInput(point &start, point &end, string &testTitle, vector< vector< lineSegment> > &polygons, vector<point> &points){
 
 	//Get the test title
