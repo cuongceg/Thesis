@@ -139,9 +139,9 @@ int crosses(lineSegment l1, lineSegment l2){
 	if(l1.p == l2.q) returnValue++;
 	if(l1.q == l2.p) returnValue++;
 	if(l1.q == l2.q) returnValue++;
-	if((rightTurn(l1.p,l1.q,l2.p)*rightTurn(l1.p,l1.q,l2.q)<0) 
+	if((rightTurn(l1.p,l1.q,l2.p)*rightTurn(l1.p,l1.q,l2.q)<=0) 
 			&&  
-			(rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<0)) returnValue += 4;
+			(rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<=0)) returnValue += 4;
 	return returnValue;
 }
 
@@ -160,7 +160,7 @@ int numberOfCrossings(vector<vector<lineSegment> > &polygons, lineSegment l){
 				numberOfvaolation+=result;
 			}
 		}
-		if(numberOfvaolation>3){
+		if(numberOfvaolation>2){
 			n++;
 		}
 	}
@@ -246,11 +246,11 @@ int makeVisabilityGraph(vector< vector < int > > &graph, vector< vector < double
 		for(int j=0;j<numberOfPoints;j++){
 
 			int from = i;
-			int to = (i/numberOfPoints)*numberOfPoints+j+crossesNumber[i][j]*numberOfPoints;
+			int to = j;//(i/numberOfPoints)*numberOfPoints+j+crossesNumber[i][j]*numberOfPoints;
 
 			//If it is the same point don't make an edge
-			if(graph.size()>to){
-			//if(i!=j){
+			//if(graph.size()>to){
+			if(crossesNumber[i][j]==0){
 				//Call dist function to calculate the distance
 				double distance = dist(points[i],points[j]);
 				graphDistance[i].push_back(distance);
@@ -278,67 +278,3 @@ int calculateNumberOfCrossings(vector < vector < int > > &crossesNumber,vector<v
 	return 0;	
 }
 
-int main(int argc, const char* argv[]){
-	int k=0;
-	bool naive = true;
-
-	if(argc>1){
-		k = atoi(argv[1]);
-	}
-	bool printGraph = true;
-
-	//Create variables for holding start and endpoint plus the test title
-	point start, end;
-	string testTitle;
-
-	//Create vector for containing the linesegments of the polygons
-	vector< vector < lineSegment> > polygons;
-
-	//Create vector for containing the points of the polygons
-	vector<point> points;
-
-	//Call function that parses the file input
-	readInput(start, end, testTitle, polygons, points);
-
-	vector< vector < int > > graph;
-	vector< vector < double > > graphDistance;
-
-	//Vector so we can backtrack the route
-	vector<int> route;
-
-	vector< vector < int > > crossesNumber;
-
-	calculateNumberOfCrossings(crossesNumber, polygons, points);
-
-	//Call function that calculate the distance
-	makeVisabilityGraph(graph, graphDistance, crossesNumber, points);
-
-
-	//The graph is constructed call dijksta to calculate the distance
-	double distance = dijkstra(graphDistance,graph,route);
-
-	//Output the distance
-	
-	if(printGraph){
-		cout << testTitle << endl;
-		cout << start.x << "," << start.y << endl;
-		cout << end.x << "," << end.y << endl;
-		cout << polygons.size() << endl;
-		for(int i=0;i<polygons.size();i++){
-			cout << polygons[i].size() << " ";
-			for(int j=0;j<polygons[i].size();j++){
-				cout << polygons[i][j].p.x << "," << polygons[i][j].p.y << " ";	
-			}
-			cout << endl;
-		}
-		int current = graph.size()-1;
-		while(current!=-1){
-			int x = (int) points[current].x;
-			int y = (int) points[current].y;
-			cout << x << "," << y << " ";
-			current = route[current];
-		}
-		cout << endl;
-	}
-	cout << distance << endl;
-}
