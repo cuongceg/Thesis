@@ -1,56 +1,24 @@
-#include <iostream> //cin cout
-#include <vector> //vector
-#include <cstdio> //scanf
-#include <sstream> //ostringstream
-#include <cmath> //pow sqrt
-#include <queue> //priority_queue
-#include <stdlib.h> //atoi
-#include <tuple> //get<n> make_tuple
 
+string toString(point p){
+	ostringstream os;
+	os << "(" << p.x << "," << p.y << ")";
+	string s = os.str();
+	return s;
+}
 
-//So we don't need to write std:: everywhere
-using namespace std;
-
-//point type for holding a coordinate 
-struct point {
-	double x;
-	double y;
-	point(double x,double y){
-		this->x = x;
-		this->y = y;
-	}
-
-	point(){
-
-	}
-	bool operator==(const point &other) const {
-		return (this->x==other.x && this->y==other.y);
-  }
-};
-//Type used in the priority queue in the dijkstra function
-typedef std::pair<double,std::pair<int,int> > pq_pair;
-
-//linesegment type holding two points
-struct lineSegment {
-	point p;
-	point q;
-	lineSegment(point p,point q){
-		this->p = p;
-		this->q = q;
-	}
-	lineSegment(){
-
-	}
-	bool operator==(const lineSegment &other) const {
-		return (this->p==other.p && this->q==other.q) ||
-		(this->p==other.q && this->q==other.p);
-  }
-};
+//Function that given a linesegment returns a string representation of it
+string toString(lineSegment l){
+	ostringstream os;
+	os << toString(l.p) << " - " << toString(l.q);
+	string s = os.str();
+	return s;
+}
 
 //Function for reading the next point in stdin
 point readPoint(){
-	point p;
-	scanf("%lf,%lf\n",&p.x,&p.y);
+	double x,y;
+	scanf("%lf,%lf\n",&x,&y);
+	point p(x,y);
 	return p;
 }
 
@@ -134,14 +102,28 @@ double rightTurn(point p1, point p2, point p3){
 
 int crosses(lineSegment l1, lineSegment l2){
 	if(l1==l2) return -1;
+		//cout << toString(l1) << " AND " << toString(l2) << endl;
 	int returnValue = 0;
 	if(l1.p == l2.p) returnValue++; 
 	if(l1.p == l2.q) returnValue++;
 	if(l1.q == l2.p) returnValue++;
 	if(l1.q == l2.q) returnValue++;
-	if((rightTurn(l1.p,l1.q,l2.p)*rightTurn(l1.p,l1.q,l2.q)<=0) 
-			&&  
-			(rightTurn(l2.p,l2.q,l1.p)*rightTurn(l2.p,l2.q,l1.q)<=0)) returnValue += 4;
+
+	if(returnValue>0) return returnValue;
+
+	double rt_1 = rightTurn(l1.p,l1.q,l2.p);
+	double rt_2 = rightTurn(l1.p,l1.q,l2.q);
+	double rt_3 = rightTurn(l2.p,l2.q,l1.p);
+	double rt_4 = rightTurn(l2.p,l2.q,l1.q);
+
+	double r1 = rt_1*rt_2;
+	double r2 = rt_3*rt_4;
+
+	if((r1==0 && r2<=0) || (r2==0 && r1<=0)){
+		returnValue=10;
+	}
+
+	if((r1<=0) &&  (r2<=0)) returnValue = 10;
 	return returnValue;
 }
 
@@ -153,8 +135,10 @@ int numberOfCrossings(vector<vector<lineSegment> > &polygons, lineSegment l){
 		for(int j=0;j<polygons[i].size();j++){
 			int result = crosses(l,polygons[i][j]);
 			if(result==-1){
-				numberOfvaolation = -1;
-				break;
+				return 0;
+			}
+			else if(result==10){
+				numberOfvaolation=10;
 			}
 			else{
 				numberOfvaolation+=result;
@@ -235,15 +219,15 @@ double dijkstra(vector< vector< double > > &graphDistance, vector<vector< int> >
 int makeVisabilityGraph(vector< vector < int > > &graph, vector< vector < double > > &graphDistance,vector< vector<int> > &crossesNumber, vector<point> &points){
 
 	//Get how many points we have
-	int numberOfPoints = points.size();
+	size_t numberOfPoints = points.size();
 
 	//Create a two dimenstional vector for the graph
 	graph.resize(numberOfPoints,vector<int>());
 	graphDistance.resize(numberOfPoints,vector<double>());
 
 	//Go through all pairs of points and calculate the distance
-	for(int i=0;i<graph.size();i++){
-		for(int j=0;j<numberOfPoints;j++){
+	for(size_t i=0;i<graph.size();i++){
+		for(size_t j=0;j<numberOfPoints;j++){
 
 			int from = i;
 			int to = j;//(i/numberOfPoints)*numberOfPoints+j+crossesNumber[i][j]*numberOfPoints;
@@ -264,8 +248,8 @@ int makeVisabilityGraph(vector< vector < int > > &graph, vector< vector < double
 
 int calculateNumberOfCrossings(vector < vector < int > > &crossesNumber,vector<vector<lineSegment> > &polygons, vector<point> &points){
 	crossesNumber.resize(points.size(),vector<int>(points.size()));
-	for(int i=0;i<points.size();i++){
-		for(int j=0;j<points.size();j++){
+	for(size_t i=0;i<points.size();i++){
+		for(size_t j=0;j<points.size();j++){
 				lineSegment l;
 				l.p = points[i];
 				l.q = points[j];

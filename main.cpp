@@ -1,8 +1,62 @@
+#include <iostream> //cin cout
+#include <vector> //vector
+#include <cstdio> //scanf
+#include <sstream> //ostringstream
+#include <cmath> //pow sqrt
+#include <queue> //priority_queue
+#include <stdlib.h> //atoi
+#include <tuple> //get<n> make_tuple
+
+
+//So we don't need to write std:: everywhere
+using namespace std;
+
+//point type for holding a coordinate 
+void setMinMax(double x, double y);
+struct point {
+	double x;
+	double y;
+	point(double x,double y){
+		this->x = x;
+		this->y = y;
+		setMinMax( x, y);
+	}
+
+	point(){
+
+	}
+	bool operator==(const point &other) const {
+		return (this->x==other.x && this->y==other.y);
+	}
+};
+//Type used in the priority queue in the dijkstra function
+typedef std::pair<double,std::pair<int,int> > pq_pair;
+
+//linesegment type holding two points
+struct lineSegment {
+	point p;
+	point q;
+	lineSegment(point p,point q){
+		this->p = p;
+		this->q = q;
+	};
+	lineSegment(){
+
+	}
+	bool operator==(const lineSegment &other) const {
+		return (this->p==other.p && this->q==other.q) ||
+		(this->p==other.q && this->q==other.p);
+  }
+};
+
+#include "draw.cpp"
 #include "naive.cpp"
 
 int main(int argc, const char* argv[]){
+	//cout << crosses(lineSegment(point(0,0),point(2,2)),lineSegment(point(1,1),point(2,0))) << endl;
+	//return 0;
+	max_x=max_y=min_y=min_x=0;
 	int k=0;
-	bool naive = true;
 
 	if(argc>1){
 		k = atoi(argv[1]);
@@ -42,25 +96,9 @@ int main(int argc, const char* argv[]){
 	//Output the distance
 	
 	if(printGraph){
-		cout << testTitle << endl;
-		cout << start.x << "," << start.y << endl;
-		cout << end.x << "," << end.y << endl;
-		cout << polygons.size() << endl;
-		for(int i=0;i<polygons.size();i++){
-			cout << polygons[i].size() << " ";
-			for(int j=0;j<polygons[i].size();j++){
-				cout << polygons[i][j].p.x << "," << polygons[i][j].p.y << " ";	
-			}
-			cout << endl;
-		}
-		int current = graph.size()-1;
-		while(current!=-1){
-			int x = (int) points[current].x;
-			int y = (int) points[current].y;
-			cout << x << "," << y << " ";
-			current = route[current];
-		}
-		cout << endl;
+		draw(testTitle,start,end, polygons,distance,points,route,graph);	
 	}
-	cout << distance << endl;
+	else{
+		cout << distance << endl;
+	}
 }
