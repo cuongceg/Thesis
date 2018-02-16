@@ -102,7 +102,7 @@ double rightTurn(point p1, point p2, point p3){
 
 int crosses(lineSegment l1, lineSegment l2){
 	if(l1==l2) return -1;
-		//cout << toString(l1) << " AND " << toString(l2) << endl;
+
 	int returnValue = 0;
 	if(l1.p == l2.p) returnValue++; 
 	if(l1.p == l2.q) returnValue++;
@@ -130,9 +130,9 @@ int crosses(lineSegment l1, lineSegment l2){
 //Takes a line segment and returns the number of polygon edges it crosses
 int numberOfCrossings(vector<vector<lineSegment> > &polygons, lineSegment l){
 	int n=0;
-	for(int i = 0; i < polygons.size();i++){
+	for(size_t i = 0; i < polygons.size();i++){
 		int numberOfvaolation=0;
-		for(int j=0;j<polygons[i].size();j++){
+		for(size_t j=0;j<polygons[i].size();j++){
 			int result = crosses(l,polygons[i][j]);
 			if(result==-1){
 				return 0;
@@ -156,7 +156,7 @@ int numberOfCrossings(vector<vector<lineSegment> > &polygons, lineSegment l){
 //returns the distance
 double dijkstra(vector< vector< double > > &graphDistance, vector<vector< int> > &graph ,vector<int> &route){
 	int start = 0;
-	int end = graph.size()-1;
+	size_t end = graph.size()-1;
 
 	route.resize(graph.size());
 
@@ -200,7 +200,7 @@ double dijkstra(vector< vector< double > > &graphDistance, vector<vector< int> >
 		visited[current] = true;
 
 		//Go through every current we have an edge to and haven't visited
-		for(int i = 0; i < graph[current].size() ; i++){
+		for(size_t i = 0; i < graph[current].size() ; i++){
 			int next = graph[current][i];
 			if(visited[next]) continue;
 
@@ -221,24 +221,27 @@ int makeVisabilityGraph(vector< vector < int > > &graph, vector< vector < double
 	//Get how many points we have
 	size_t numberOfPoints = points.size();
 
-	//Create a two dimenstional vector for the graph
-	graph.resize(numberOfPoints,vector<int>());
-	graphDistance.resize(numberOfPoints,vector<double>());
-
 	//Go through all pairs of points and calculate the distance
 	for(size_t i=0;i<graph.size();i++){
 		for(size_t j=0;j<numberOfPoints;j++){
 
-			int from = i;
-			int to = j;//(i/numberOfPoints)*numberOfPoints+j+crossesNumber[i][j]*numberOfPoints;
+			size_t from = i;
+
+			size_t from_point_index = from%numberOfPoints;
+
+			size_t to_point_index = j;
+
+			size_t to = (i/numberOfPoints)*numberOfPoints+crossesNumber[from_point_index][j]*numberOfPoints+j;
+
 
 			//If it is the same point don't make an edge
-			//if(graph.size()>to){
-			if(crossesNumber[i][j]==0){
+			if(graph.size()>to){
+			//if(crossesNumber[from][to]==0){
 				//Call dist function to calculate the distance
-				double distance = dist(points[i],points[j]);
-				graphDistance[i].push_back(distance);
-				graph[i].push_back(j);
+				double distance = dist(points[from_point_index],points[to_point_index]);
+
+				graphDistance[from].push_back(distance);
+				graph[from].push_back(to);
 			}
 		}
 	}
@@ -261,4 +264,3 @@ int calculateNumberOfCrossings(vector < vector < int > > &crossesNumber,vector<v
 	}
 	return 0;	
 }
-

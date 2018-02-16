@@ -11,6 +11,13 @@
 //So we don't need to write std:: everywhere
 using namespace std;
 
+struct {
+	bool printGraph = false;
+	bool drawRoute = true;
+	int printLevel = 0;
+	size_t k = 0;
+} config;
+
 //point type for holding a coordinate 
 void setMinMax(double x, double y);
 struct point {
@@ -52,16 +59,31 @@ struct lineSegment {
 #include "draw.cpp"
 #include "naive.cpp"
 
-int main(int argc, const char* argv[]){
-	//cout << crosses(lineSegment(point(0,0),point(2,2)),lineSegment(point(1,1),point(2,0))) << endl;
-	//return 0;
-	max_x=max_y=min_y=min_x=0;
-	int k=0;
 
-	if(argc>1){
-		k = atoi(argv[1]);
+void setConfig(int argc, const char* argv[]){
+	for(int i = 1 ; i < argc ; i++ ){
+		string s(argv[i]);	
+		if(s.compare("-k")==0){
+			config.k = atoi(argv[i+1]);
+		}
+		if(s.compare("-p")==0){
+			config.printGraph = true;
+			if(argc-1>i){
+				string temp(argv[i+1]);
+
+				if(temp.find_first_not_of( "0123456789" ) == string::npos){
+					config.printLevel = atoi(argv[i+1]);
+				}
+			}
+		}
 	}
-	bool printGraph = true;
+}
+
+int main(int argc, const char* argv[]){
+
+	max_x=max_y=min_y=min_x=0;
+
+	setConfig(argc,argv);
 
 	//Create variables for holding start and endpoint plus the test title
 	point start, end;
@@ -86,6 +108,15 @@ int main(int argc, const char* argv[]){
 
 	calculateNumberOfCrossings(crossesNumber, polygons, points);
 
+	//Get how many points we have
+	size_t numberOfPoints = points.size();
+
+	//Create a two dimenstional vector for the graph
+	
+	size_t dimension = numberOfPoints*(config.k+1);
+	graph.resize(dimension,vector<int>());
+	graphDistance.resize(dimension,vector<double>());
+
 	//Call function that calculate the distance
 	makeVisabilityGraph(graph, graphDistance, crossesNumber, points);
 
@@ -95,7 +126,7 @@ int main(int argc, const char* argv[]){
 
 	//Output the distance
 	
-	if(printGraph){
+	if(config.printGraph){
 		draw(testTitle,start,end, polygons,distance,points,route,graph);	
 	}
 	else{

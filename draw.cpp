@@ -15,11 +15,11 @@ void setMinMax(double x, double y){
 	}
 }
 
-float drawX(point &p){
+double drawX(point &p){
 	return p.x*10;
 }
 
-float drawY(point &p){
+double drawY(point &p){
 	return p.y*-10;
 }
 
@@ -27,7 +27,7 @@ void drawRoute(vector<int> & route,vector<point> & points){
 	cout << "<polyline stroke='red' stroke-width='0.2' fill='none' points='";
 	int current = route.size()-1;
 	while(current!=-1){
-		point p =  points[current];
+		point p =  points[current%points.size()];
 		cout << drawX(p) << "," << drawY(p) << " ";
 		current = route[current];
 	}
@@ -59,9 +59,11 @@ void drawTitle(string testTitle, double distance){
 }
 
 void drawGraph(vector< vector< int> > &graph, vector<point>& points){
-	for(int i=0;i<graph.size();i++){
-		for(int j=0;j<graph[i].size();j++){
-			point from=points[i], to=points[graph[i][j]];
+	size_t plane_start = ((points.size()*config.printLevel)/points.size())*points.size();
+	size_t plane_end   = plane_start+points.size();
+	for(size_t i=plane_start;i<plane_end;i++){
+		for(size_t j=0;j<graph[i].size();j++){
+			point from=points[i%points.size()], to=points[graph[i][j]%points.size()];
 		cout << "<line x1='"<< drawX(from) << "' y1='"<< drawY(from)<<"' x2='"<<drawX(to)<<"' y2='"<<drawY(to)<<"' stroke-width='0.1' stroke='blue'/>" << endl;
 		}
 	}
@@ -82,6 +84,6 @@ void draw(string & testTitle, point & start, point & end, vector <vector < lineS
 
 	drawTitle(testTitle,distance);
 	drawGraph(graph,points);
-	if(distance!=-1) drawRoute(route,points);
+	if(distance!=-1 && config.drawRoute) drawRoute(route,points);
 	cout << "</svg>" << endl;
 }
