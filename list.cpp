@@ -1,35 +1,6 @@
 #include <vector>
 #include <cstdio>
-
-template <class T> class list{
-	public:
-		//////////////////////////////
-		// Standard list operations //
-		//////////////////////////////
-
-		void insert(T element, int priority);
-		bool del(T element);
-		//concatenate();
-		//split();
-		//findPrevious();
-		//findNext();
-		//search();
-
-		///////////////////////////////
-		// Priority queue operations //
-		///////////////////////////////
-		
-		bool updatePriority(T element, int priority);
-		T findMin();
-
-	private:
-		struct S {
-			T element;
-			int priority;
-		};
-		std::vector<S> vec;
-		size_t findIndex(T element);
-};
+#include "list.h"
 
 template<class T>
 bool list<T>::updatePriority(T element, int priority){
@@ -76,4 +47,36 @@ T list<T>::findMin(){
 		}
 	}
 	return minSoFar;
+}
+
+template<class T>
+T * list<T>::findPrevious(T element){
+	T * prev = nullptr;
+	for(int i=0;i<list::vec.size();i++){
+		if(list::vec[i]==element){
+			return prev;
+		}
+		prev = & list::vec[i];
+	}
+
+	return nullptr;
+	
+}
+
+template<class T>
+T * list<T>::findNext(T element){
+
+	bool returnBool = false;
+
+	for(int i=0;i<list::vec.size();i++){
+
+		if(returnBool){
+			return & list::vec[i];
+		}
+		if(list::vec[i]==element){
+			returnBool = true;
+		}
+	}
+
+	return nullptr;
 }
