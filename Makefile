@@ -1,2 +1,2 @@
 all:
-	clang++ -std=c++17 -Weverything -g main.cpp
+	clang++ -O3 -std=c++17 main.cpp
