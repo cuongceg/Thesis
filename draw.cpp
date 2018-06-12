@@ -40,7 +40,7 @@ void drawPoint(point &p,string color){
 }
 
 void drawPolygon(vector<lineSegment> & polygon){
-	cout << "<polygon stroke='black' stroke-width='0.1' fill='lightgrey'  points='";
+	cout << "<polygon stroke='black' stroke-width='0.1' fill='#D3D3D3'  points='";
 	cout << drawX(polygon[0].p) << "," << drawY(polygon[0].p) << " ";
 	cout << drawX(polygon[0].q) << "," << drawY(polygon[0].q) << " ";
 	for(int i=1;i<polygon.size();i++){
@@ -79,7 +79,7 @@ void draw(string & testTitle, point & start, point & end, vector <vector < lineS
 
 	drawPolygons(polygons);
 
-	drawPoint(start,"orange");
+	drawPoint(start,"#FFA500");
 	drawPoint(end,"green");
 
 	drawTitle(testTitle,distance);

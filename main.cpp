@@ -6,6 +6,7 @@
 #include <queue> //priority_queue
 #include <stdlib.h> //atoi
 #include <tuple> //get<n> make_tuple
+#include <chrono>
 
 
 //So we don't need to write std:: everywhere
@@ -79,6 +80,10 @@ void setConfig(int argc, const char* argv[]){
 	}
 }
 
+int getTime(std::chrono::steady_clock::time_point start, std::chrono::steady_clock::time_point end){
+	return std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+}
+
 int main(int argc, const char* argv[]){
 
 	max_x=max_y=min_y=min_x=0;
@@ -106,7 +111,6 @@ int main(int argc, const char* argv[]){
 
 	vector< vector < int > > crossesNumber;
 
-	calculateNumberOfCrossings(crossesNumber, polygons, points);
 
 	//Get how many points we have
 	size_t numberOfPoints = points.size();
@@ -117,19 +121,30 @@ int main(int argc, const char* argv[]){
 	graph.resize(dimension,vector<int>());
 	graphDistance.resize(dimension,vector<double>());
 
+   auto time1 = std::chrono::steady_clock::now();
+
 	//Call function that calculate the distance
+	calculateNumberOfCrossings(crossesNumber, polygons, points);
+
+   auto time2 = std::chrono::steady_clock::now();
+
 	makeVisabilityGraph(graph, graphDistance, crossesNumber, points);
+
+   auto time3 = std::chrono::steady_clock::now();
 
 
 	//The graph is constructed call dijksta to calculate the distance
 	double distance = dijkstra(graphDistance,graph,route);
 
+   auto time4 = std::chrono::steady_clock::now();
 	//Output the distance
 	
 	if(config.printGraph){
 		draw(testTitle,start,end, polygons,distance,points,route,graph);	
 	}
 	else{
-		cout << distance << endl;
+		//cout << distance << endl;
+		cout << getTime(time1,time2) << " " << getTime(time2,time3) << " " << getTime(time3,time4) << " " << distance << endl;
+		//cout << "Dijkstra took : " << getTime(visibility_end,dijkstra_end) << endl;
 	}
 }
