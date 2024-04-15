@@ -1,3 +1,13 @@
+#include <string>
+#include <sstream>
+#include <vector>
+#include <iostream>
+#include <math.h>
+#include <queue> //priority_queue
+#include <tuple>
+#include "draw.hpp"
+using namespace std;
+
 
 string toString(point p){
 	ostringstream os;
